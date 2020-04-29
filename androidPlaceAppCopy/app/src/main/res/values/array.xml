@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="col_header">
+        <item>Name</item>
+    </string-array>
+
+    <string-array name="col_header_placeDescription">
+        <item>Place Description</item>
+    </string-array>
+
+
+</resources>
