@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -23,25 +22,37 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+
+/**
+ * Copyright (c) 2020 Tiffany Hernandez,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. Exception: Instructor Tim Lindquist and Arizona
+ * State University has the right to build and evaluate this software package
+ * for the purpose of determining a grade and program assessment.
+ *
+ * @author Tiffany Hernandez
+ * @version April 25, 2020
+ */
 
 public class PlaceActivity extends AppCompatActivity {
-    private PlaceLibrary places;
-    private TextView stud_numberTV;
-    private ListView placeLV;
+    //private PlaceLibrary places;
     private String selectedPlace;
     private String selectedDistancePlace;
-    private EditText nameBox, descriptionBox, catBox, titleBox, addBox, eleBox, LatBox, LonBox, imageBox; // used in the alert dialog for adding a student
+    private EditText nameBox, descriptionBox, catBox, titleBox, addBox, eleBox, LatBox, LonBox, imageBox;
     private String[] placeNames;
-
-    private String[] availTitles;
-    private String[] availPrefixes;
     private String[] colLabels;
     private int[] colIds;
     private List<HashMap<String,String>> arrListOfMaps;
@@ -59,7 +70,7 @@ public class PlaceActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.place_display);
-        placeLV = (ListView)findViewById(R.id.placeDescription_list_view);
+        ListView placeLV = (ListView)findViewById(R.id.placeDescription_list_view);
         placeSpinner = findViewById(R.id.spinner);
         Intent intent = getIntent();
         selectedPlace = intent.getStringExtra("selected")!=null ? intent.getStringExtra("selected") : "unknown";
@@ -68,22 +79,17 @@ public class PlaceActivity extends AppCompatActivity {
         this.prepareAdapter();
         this.setupDistanceSpinner();
 
-        //PLACE LIST DESCRIPTION = JUST A DESCRIPTION COLUMN
-        SimpleAdapter sa = new SimpleAdapter(this, arrListOfMaps, R.layout.place_list_description, colLabels, colIds);
-        placeLV.setAdapter(sa);
+        SimpleAdapter simpleA = new SimpleAdapter(this, arrListOfMaps, R.layout.place_list_description, colLabels, colIds);
+        placeLV.setAdapter(simpleA);
 
-        // set up a back button to return to the view main activity / view
         try {
             getActionBar().setDisplayHomeAsUpEnabled(true);
         }catch(Exception ex){
-            android.util.Log.d(this.getClass().getSimpleName(),"exception action bar: "+ex.getLocalizedMessage());
+            android.util.Log.d(this.getClass().getSimpleName(),"exception: "+ex.getLocalizedMessage());
         }
         setTitle(selectedPlace +" Information");
     }
 
-
-    // create the menu items for this activity, placed in the action bar.
-    //where the trash can is
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         android.util.Log.d(this.getClass().getSimpleName(), "called onCreateOptionsMenu()");
@@ -92,24 +98,17 @@ public class PlaceActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    /*
-     * Implement onOptionsItemSelected(MenuItem item){} to handle clicks of buttons that are
-     * in the action bar.
-     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         android.util.Log.d(this.getClass().getSimpleName(), "called onOptionsItemSelected() id: "+item.getItemId()
                 +" title "+item.getTitle());
         switch (item.getItemId()) {
-            // the user selected the up/home button (left arrow at left of action bar)
             case android.R.id.home:
                 android.util.Log.d(this.getClass().getSimpleName(),"onOptionsItemSelected -> home");
                 Intent i = new Intent();
-                i.putExtra("places", places);
                 this.setResult(RESULT_OK,i);
                 finish();
                 return true;
-            // the user selected the action (garbage can) to remove the student
             case R.id.action_remove:
                 android.util.Log.d(this.getClass().getSimpleName(),"onOptionsItemSelected -> remove");
                 this.removePlaceAlert();
@@ -120,44 +119,36 @@ public class PlaceActivity extends AppCompatActivity {
     }
 
     private void prepareAdapter() {
-        android.util.Log.w("PREPARE ADAPTER", "PREPARE ADAPTER");
         colLabels = this.getResources().getStringArray(R.array.col_header_placeDescription);
         colIds = new int[]{R.id.place_description};
-        android.util.Log.w("PREPARE ADAPTER", "PREPARE ADAPTER");
-
         try{
             PlaceDB db = new PlaceDB((Context)this);
-            SQLiteDatabase crsDB = db.openDB();
-            Cursor cur = crsDB.rawQuery("select * from place where place_name=?;",
+            SQLiteDatabase sqldb = db.openDB();
+            Cursor cursor = sqldb.rawQuery("select * from place where place_name=?;",
                     new String[]{selectedPlace});
 
-            while (cur.moveToNext()){
-                address_title = cur.getString(0);
-                address_street = cur.getString(1);
-                elevation = Double.toString(cur.getDouble(2));
-                latitude = Double.toString(cur.getDouble(3));
-                longitude = Double.toString(cur.getDouble(4));
-                image = cur.getString(6);
-                place_decription = cur.getString(7);
-                place_category = cur.getString(8);
+            while (cursor.moveToNext()){
+                address_title = cursor.getString(0);
+                address_street = cursor.getString(1);
+                elevation = Double.toString(cursor.getDouble(2));
+                latitude = Double.toString(cursor.getDouble(3));
+                longitude = Double.toString(cursor.getDouble(4));
+                image = cursor.getString(6);
+                place_decription = cursor.getString(7);
+                place_category = cursor.getString(8);
             }
-
-            cur.close();
+            cursor.close();
 
             arrListOfMaps = new ArrayList<HashMap<String, String>>();
 
             HashMap<String, String> title = new HashMap<>();
             title.put("Place Description", "Place Description");
             arrListOfMaps.add(title);
-            android.util.Log.w("PREPARE ADAPTER", "PREPARE ADAPTER");
-
 
             //FILLING name: row 2
             HashMap<String, String> name = new HashMap<>();
             name.put("Place Description", "Name: " + selectedPlace);
             arrListOfMaps.add(name);
-            android.util.Log.w("PREPARE ADAPTER", "PREPARE ADAPTER");
-
             Log.w("name", "mapping: " + selectedPlace + " " + selectedPlace);
 
 
@@ -227,7 +218,7 @@ public class PlaceActivity extends AppCompatActivity {
                 }
             });
         }catch(Exception ex){
-            android.util.Log.w(this.getClass().getSimpleName(),"unable to setup place spinner");
+            android.util.Log.w(this.getClass().getSimpleName(),"spinner setup error");
         }
     }
 
@@ -294,15 +285,14 @@ public class PlaceActivity extends AppCompatActivity {
 
         try{
             PlaceDB db = new PlaceDB((Context)this);
-            SQLiteDatabase crsDB = db.openDB();
-            Cursor cur = crsDB.rawQuery("select latitude, longitude from place where place_name=?;",
+            SQLiteDatabase sqldb = db.openDB();
+            Cursor cursor = sqldb.rawQuery("select latitude, longitude from place where place_name=?;",
                     new String[]{selectedDistancePlace});
 
-            if(cur.moveToFirst()){
-                otherLong = cur.getDouble(cur.getColumnIndex("longitude"));
-                otherLat = cur.getDouble(cur.getColumnIndex("latitude"));
+            if(cursor.moveToFirst()){
+                otherLong = cursor.getDouble(cursor.getColumnIndex("longitude"));
+                otherLat = cursor.getDouble(cursor.getColumnIndex("latitude"));
             }
-            Toast.makeText(this, "fields: " + otherLong + " "  + otherLat,  Toast.LENGTH_LONG).show();
             calcGCD(otherLong, otherLat);
         }catch(Exception ex){
             android.util.Log.w(this.getClass().getSimpleName(),"unable to calculate GCD");
@@ -327,14 +317,20 @@ public class PlaceActivity extends AppCompatActivity {
         double placeLat = Math.toRadians(Double.parseDouble(latitude));
         double placeLon = Math.toRadians(Double.parseDouble(longitude));
 
-        double ang = Math.acos(Math.sin(placeLat) * Math.sin(otherPlaceLat)
+        double calc1 = Math.acos(Math.sin(placeLat) * Math.sin(otherPlaceLat)
                 + Math.cos(placeLat) * Math.cos(otherPlaceLat) * Math.cos(otherPlaceLon - placeLon));
-        ang = Math.toDegrees(ang);
-        double d = 60 * ang;
+        double calc2 = Math.toDegrees(calc1);
+        double d = 60 * calc2;
 
-        //DEBUG
-        //Toast.makeText(this, "fields: " + d,  Toast.LENGTH_LONG).show();
-
+        AlertDialog.Builder dbDialog = new AlertDialog.Builder(PlaceActivity.this);
+        dbDialog.setTitle("Great Circle Distance");
+        dbDialog.setMessage("Between " + selectedPlace + " and " + selectedDistancePlace + " is: " + d + " miles.");
+        dbDialog.setPositiveButton("Ok",  new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int whichButton) {
+            }
+        });
+        dbDialog.show();
     }
 
     DialogInterface.OnClickListener removeListener = new DialogInterface.OnClickListener() {
@@ -349,9 +345,9 @@ public class PlaceActivity extends AppCompatActivity {
                 String delete = "delete from place where place_name=?;";
                 try {
                     PlaceDB db = new PlaceDB((PlaceActivity.this));
-                    SQLiteDatabase crsDB = db.openDB();
-                    crsDB.execSQL(delete, new String[]{selectedPlace});
-                    crsDB.close();
+                    SQLiteDatabase sqldb = db.openDB();
+                    sqldb.execSQL(delete, new String[]{selectedPlace});
+                    sqldb.close();
                     db.close();
 
                     Intent i = new Intent();
@@ -371,7 +367,7 @@ public class PlaceActivity extends AppCompatActivity {
         public void onClick(DialogInterface dialog, int whichButton) {
             if(whichButton == DialogInterface.BUTTON_POSITIVE) {
                 android.util.Log.d(this.getClass().getSimpleName(), "edit Clicked");
-                Boolean invalidformat = false;
+                Boolean invalidFormat = false;
                 Boolean invalidNumFormat = false;
 
                 String userAddressTitle = PlaceActivity.this.titleBox.getText().toString();
@@ -393,7 +389,7 @@ public class PlaceActivity extends AppCompatActivity {
                     empty.setMessage("Form empty. Try again.");
                     empty.setNegativeButton("Ok", this);
                     empty.show();
-                    invalidformat = true;
+                    invalidFormat = true;
                 }
 
                 if(userPlaceName.length()>0) {
@@ -404,7 +400,7 @@ public class PlaceActivity extends AppCompatActivity {
                             name.setMessage("That place name already exists.");
                             name.setNegativeButton("Ok", this);
                             name.show();
-                            invalidformat = true;
+                            invalidFormat = true;
                             break;
                         }
                     }
@@ -412,12 +408,10 @@ public class PlaceActivity extends AppCompatActivity {
                     userPlaceName = selectedPlace;
                 }
 
-                //no null check?
                 if (userAddressTitle.length() < 1) {
                     userAddressTitle = address_title;
                 }
 
-                //no null check?
                 if (userAddressStreet.length() < 1) {
                     userAddressStreet = address_street;
                 }
@@ -465,27 +459,27 @@ public class PlaceActivity extends AppCompatActivity {
                 }
 
                 if (invalidNumFormat){
-                    invalidformat = true;
+                    invalidFormat = true;
                     invalidNumAlert();
                 }
 
-                if (!invalidformat) {
+                if (!invalidFormat) {
                     try {
                         PlaceDB db = new PlaceDB((PlaceActivity.this));
-                        SQLiteDatabase crsDB = db.openDB();
-                        ContentValues hm = new ContentValues();
-                        hm.put("address_title", userAddressTitle);
-                        hm.put("address_street", userAddressStreet);
-                        hm.put("elevation", eleNum);
-                        hm.put("latitude", latNum);
-                        hm.put("longitude", lonNum);
-                        hm.put("place_name", userPlaceName);
-                        hm.put("image", userImage);
-                        hm.put("place_decription", userDescription);
-                        hm.put("place_category", userCategory);
+                        SQLiteDatabase sqldb = db.openDB();
+                        ContentValues cv = new ContentValues();
+                        cv.put("address_title", userAddressTitle);
+                        cv.put("address_street", userAddressStreet);
+                        cv.put("elevation", eleNum);
+                        cv.put("latitude", latNum);
+                        cv.put("longitude", lonNum);
+                        cv.put("place_name", userPlaceName);
+                        cv.put("image", userImage);
+                        cv.put("place_decription", userDescription);
+                        cv.put("place_category", userCategory);
 
-                        crsDB.update("place", hm, "place_name=?", new String[]{selectedPlace});
-                        crsDB.close();
+                        sqldb.update("place", cv, "place_name=?", new String[]{selectedPlace});
+                        sqldb.close();
                         db.close();
                     } catch (Exception e) {
                         android.util.Log.w(this.getClass().getSimpleName(), " error trying to delete student");

@@ -13,6 +13,27 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
+/**
+ * Copyright (c) 2020 Tiffany Hernandez,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. Exception: Instructor Tim Lindquist and Arizona
+ * State University has the right to build and evaluate this software package
+ * for the purpose of determining a grade and program assessment.
+ *
+ * @author Tiffany Hernandez
+ * @version April 25, 2020
+ */
+
 public class PlaceDB extends SQLiteOpenHelper {
     private static final boolean debugon = true;
     private static final int DATABASE_VERSION = 3;
@@ -24,8 +45,6 @@ public class PlaceDB extends SQLiteOpenHelper {
     public PlaceDB(Context context){
         super(context,dbName, null, DATABASE_VERSION);
         this.context = context;
-        // place the database in the files directory. Could also place it in the databases directory
-        // with dbPath = context.getDatabasePath("dbName"+".db").getPath();
         dbPath = context.getFilesDir().getPath()+"/";
         android.util.Log.d(this.getClass().getSimpleName(),"db path is: "+
                 context.getDatabasePath("placesdb"));
@@ -42,15 +61,7 @@ public class PlaceDB extends SQLiteOpenHelper {
         }
     }
 
-    /**
-     * Does the database exist and has it been initialized? This method determines whether
-     * the database needs to be copied to the data/data/pkgName/files directory by
-     * checking whether the file exists. If it does it checks to see whether the db is
-     * uninitialized or whether it has the course table.
-     * @return false if the database file needs to be copied from the assets directory, true
-     * otherwise.
-     */
-    private boolean checkDB(){    //does the database exist and is it initialized?
+    private boolean checkDB(){
         SQLiteDatabase checkDB = null;
         boolean crsTabExists = false;
         try{
@@ -96,13 +107,11 @@ public class PlaceDB extends SQLiteOpenHelper {
     public void copyDB() throws IOException{
         try {
             if(!checkDB()){
-                // only copy the database if it doesn't already exist in my database directory
                 debug("placesdb --> copyDB", "checkDB returned false, starting copy");
                 InputStream ip =  context.getResources().openRawResource(R.raw.placesdb);
-                // make sure the database path exists. if not, create it.
-                File aFile = new File(dbPath);
-                if(!aFile.exists()){
-                    aFile.mkdirs();
+                File file = new File(dbPath);
+                if(!file.exists()){
+                    file.mkdirs();
                 }
                 String op=  dbPath  +  dbName +".db";
                 OutputStream output = new FileOutputStream(op);
@@ -148,7 +157,7 @@ public class PlaceDB extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, int o, int n) {
 
     }
 

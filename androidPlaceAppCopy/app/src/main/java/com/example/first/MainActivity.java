@@ -1,7 +1,5 @@
 package com.example.first;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,7 +15,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -28,23 +25,36 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, DialogInterface.OnClickListener {
+/**
+ * Copyright (c) 2020 Tiffany Hernandez,
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. Exception: Instructor Tim Lindquist and Arizona
+ * State University has the right to build and evaluate this software package
+ * for the purpose of determining a grade and program assessment.
+ *
+ * @author Tiffany Hernandez
+ * @version April 25, 2020
+ */
 
-    private EditText nameBox, descriptionBox, catBox, titleBox, addBox, eleBox, LatBox, LonBox, imageBox; // used in the alert dialog for adding a student
-    private ListView placesLV;   // the list view for displaying a place
-    private PlaceLibrary places;  // a collection of places (serializable)
+public class MainActivity extends AppCompatActivity implements ListView.OnItemClickListener, DialogInterface.OnClickListener {
+    private EditText nameBox, descriptionBox, catBox, titleBox, addBox, eleBox, LatBox, LonBox, imageBox;
+    private ListView placesLV;
+    //private PlaceLibrary places;
     private String[] placeNames;
 
-    private String[] colLabels;
-    private int[] colIds;
+    private String[] colTag;
+    private int[] colNum;
     private List<HashMap<String,String>> fillMaps;
-
-    /*
-    Called when the activity is first created. This is where you should do all of your normal static set up:
-    create views, bind data to lists, etc. This method also provides you with a Bundle containing the activity's
-    previously frozen state, if there was one.
-
-     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,100 +62,54 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         setContentView(R.layout.activity_main);
         placesLV = (ListView) findViewById(R.id.place_list_view);
         this.setUpPlacesList();
-        SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
-        placesLV.setAdapter(sa);
+        SimpleAdapter simpleA = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colTag, colNum);
+        placesLV.setAdapter(simpleA);
         placesLV.setOnItemClickListener(this);
         setTitle("Places");
     }
 
-    private String setUpPlacesList(){
-        String ret = "unknown";
-        colLabels = this.getResources().getStringArray(R.array.col_header);
-        colIds = new int[] {R.id.place_firstTV};
+    private void setUpPlacesList(){
+        colTag = this.getResources().getStringArray(R.array.col_header);
+        colNum = new int[] {R.id.place_firstTV};
 
         try{
-            //Calling DB and putting names into placenames array
             PlaceDB db = new PlaceDB((Context)this);
-            SQLiteDatabase crsDB = db.openDB();
-            Cursor cur = crsDB.rawQuery("select place_name from place;", new String[]{});
-            ArrayList<String> al = new ArrayList<String>();
-            while(cur.moveToNext()){
+            SQLiteDatabase sqldb = db.openDB();
+            Cursor cursor = sqldb.rawQuery("select place_name from place;", new String[]{});
+            ArrayList<String> arrL = new ArrayList<String>();
+            while(cursor.moveToNext()){
                 try{
-                    al.add(cur.getString(0));
+                    arrL.add(cursor.getString(0));
                 }catch(Exception ex){
                     android.util.Log.w(this.getClass().getSimpleName(),"exception stepping thru cursor"+ex.getMessage());
                 }
             }
-            placeNames = (String[]) al.toArray(new String[al.size()]);
-            ret = (placeNames.length>0 ? placeNames[0] : "unknown");
+            placeNames = (String[]) arrL.toArray(new String[arrL.size()]);
             Arrays.sort(this.placeNames);
-            //Need to go through place names array and add to map to hook up to adapter
-
             this.prepareAdapter();
-            cur.close();
+            cursor.close();
             db.close();
         }catch(Exception ex){
             android.util.Log.w(this.getClass().getSimpleName(),"unable to setup student spinner");
         }
-        return ret;
     }
 
-    // this method generates the data needed to create a new list view simple adapter.
     private void prepareAdapter(){
-
-        //FOR ADAPTER
-        //fill colLabel string array with col_header portion of array file: NAME
-        colLabels = this.getResources().getStringArray(R.array.col_header);
-
-        //FOR ADAPTER
-        //fill colIDs string array with col_header portion of array file: NAME
-        //integer array used to store the Id’s of the views
-        //The views that should display column in the “from” parameter.
-        // These should all be TextViews. The first N views in this list are
-        // given the values of the first N columns in the “from” parameter.
-
-        //THIS IS THE TEXT VIEW ID IN PLACE_LIST_ITEM
-        colIds = new int[] {R.id.place_firstTV};
-
-        //sets this class's placeNames string array to
-        //hold all places inside Place Library
-        ///this.placeNames = places.getNames();
-
-        ///Arrays.sort(this.placeNames);
-
-        //FOR ADAPTER
+        colTag = this.getResources().getStringArray(R.array.col_header);
+        colNum = new int[] {R.id.place_firstTV};
         fillMaps = new ArrayList<HashMap<String,String>>();
-
-        //create hashmap for column headers
         HashMap<String,String> titles = new HashMap<>();
-
-        // first row contains column headers
         titles.put("Name","Name");
-
-        //add the column header to an arraylist of type Hashmaps each containing <Key: String, Value: String>
         fillMaps.add(titles);
-
-        // fill in the remaining rows with first last and student id
         for (int i = 0; i < placeNames.length; i++) {
-
-            //Don't need
-            //String[]firstNLast = studNames[i].split(" ");
-
             HashMap<String,String> map = new HashMap<>();
-
-            //print to console
-            //Log.d(this.getClass().getSimpleName(),"mapping: "+firstNLast[0]+" "+firstNLast[1]);
-
             map.put("Name", this.placeNames[i]);
-
             android.util.Log.w(this.getClass().getSimpleName(),placeNames[i]);
-
             fillMaps.add(map);
         }
 
     }
 
-    // create the main_activity_menu items for this activity, placed in the action bar.
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         android.util.Log.d(this.getClass().getSimpleName(), "called onCreateOptionsMenu()");
@@ -154,9 +118,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         return super.onCreateOptionsMenu(menu);
     }
 
-    /*
-    BUTTON ACTION ADD student, i think ???
-     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         android.util.Log.d(this.getClass().getSimpleName(), "called onOptionsItemSelected()");
@@ -170,62 +131,26 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         }
     }
 
-    /*
-    ON ITEM CLICK - WHEN PLACE IS CHOSEN
-    DISPLAY ACTIVITY CLASS
-
-    //https://developer.android.com/reference/android/widget/AdapterView.OnItemClickListener
-
-    Callback method to be invoked when an item in this AdapterView has been clicked.
-    parent = AdapterView: The AdapterView where the click happened.
-    view = View: The view within the AdapterView that was clicked (this will be a view provided by the adapter)
-    position = int: The position of the view in the adapter.
-    id = long: The row id of the item that was clicked.
-
-    listview.onitemclicklistener method
-
-     */
-
-    //When user selects a place to look at
-    //listview.onitemclicklistener method
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-
         android.util.Log.w("method","Inside onItemClick Method");
-
-
-        //index that the user pushed
         if(position > 0 && position <= placeNames.length) {
-
-            //DEBUG index that the user pushed
             android.util.Log.d(this.getClass().getSimpleName(), "in method onItemClick. selected: " + placeNames[position-1]);
-
-            //STUDENT DISPLAY ACTIVITY
             Intent displayPlace = new Intent(this, PlaceActivity.class);
-
-            //putextra extends data to the next intent ("Variable name", string-to-be-sent)
-            ///displayPlace.putExtra("places", places);
             displayPlace.putExtra("selected", placeNames[position-1]);
             displayPlace.putExtra("names", placeNames);
             this.startActivityForResult(displayPlace, 1);
         }
     }
 
-    // called when the finish() method is called in the StudentDisplayActivity. This occurs
-    // when done displaying (and possibly modifying students). In case a student has been removed,
-    // must update the list view (via a new adapter).
-    //THIS IS TO UPDATE THE LIST OF PLACES AFTER THE USER DELETES IT
-
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         this.setUpPlacesList();
-        SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
-        placesLV.setAdapter(sa);
+        SimpleAdapter simpleA = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colTag, colNum);
+        placesLV.setAdapter(simpleA);
         placesLV.setOnItemClickListener(this);
         setTitle("Places");
     }
 
-
-    //Dialog box adding a student/place
     private void newStudentAlert() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Add a Place Description");
@@ -277,8 +202,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         dialog.show();
     }
 
-
-    //Logic for adding a new place
     @Override
     public void onClick(DialogInterface dialog, int whichButton) {
         android.util.Log.d(this.getClass().getSimpleName(),"onClick positive button? "+
@@ -308,13 +231,9 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
                 }
             }
 
-            if (userEle == null || userEle.length() < 1 ||
-                    userLat == null || userLat.length() < 1 ||
-                    userLon == null || userLon.length() < 1 ||
-                    userPlaceName == null || userPlaceName.length() < 1 ||
-                    userImage == null || userImage.length() < 1 ||
-                    userDescription == null || userDescription.length() < 1 ||
-                    userCategory == null || userCategory.length() < 1) {
+            if (userEle.length() < 1 || userLat.length() < 1 || userLon.length() < 1 ||
+                userPlaceName.length() < 1 || userImage.length() < 1 || userDescription.length() < 1 ||
+                userCategory.length() < 1) {
                 formatCheck = true;
                 AlertDialog.Builder dbDialog = new AlertDialog.Builder(this);
                 dbDialog.setTitle("Error. Your entry could not be added");
@@ -337,48 +256,46 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
             }
 
 
-            if (userAddressTitle == null || userAddressTitle.length() < 1){
+            if (userAddressTitle.length() < 1){
                 userAddressTitle = null;
             }
 
-            if (userAddressStreet == null || userAddressStreet.length() < 1){
+            if (userAddressStreet.length() < 1){
                 userAddressStreet = null;
             }
 
             if (!formatCheck) {
                 try {
                         PlaceDB db = new PlaceDB((Context) this);
-                        SQLiteDatabase crsDB = db.openDB();
-                        ContentValues hm = new ContentValues();
-                        hm.put("address_title", userAddressTitle);
-                        hm.put("address_street", userAddressStreet);
-                        hm.put("elevation", eleNum);
-                        hm.put("latitude", latNum);
-                        hm.put("longitude", lonNum);
-                        hm.put("place_name", userPlaceName);
-                        hm.put("image", userImage);
-                        hm.put("place_decription", userDescription);
-                        hm.put("place_category", userCategory);
+                        SQLiteDatabase sqldb = db.openDB();
+                        ContentValues cv = new ContentValues();
+                        cv.put("address_title", userAddressTitle);
+                        cv.put("address_street", userAddressStreet);
+                        cv.put("elevation", eleNum);
+                        cv.put("latitude", latNum);
+                        cv.put("longitude", lonNum);
+                        cv.put("place_name", userPlaceName);
+                        cv.put("image", userImage);
+                        cv.put("place_decription", userDescription);
+                        cv.put("place_category", userCategory);
 
                         android.util.Log.w("onclick", "message is " + nameBox.getText() + eleBox.getText()
                                 + this.titleBox.getText() + eleNum + latNum + lonNum
                                 + this.addBox.getText() + this.imageBox.getText() + this.descriptionBox.getText()
                                 + this.catBox.getText());
 
-                        crsDB.insert("place", null, hm);
-                        crsDB.close();
+                        sqldb.insert("place", null, cv);
+                        sqldb.close();
                         db.close();
                     } catch (Exception ex) {
                         android.util.Log.w(this.getClass().getSimpleName(), "unable to add entry to database" + ex.getMessage() + "Stacktrace: " + ex.getStackTrace());
                     }
             }
             setUpPlacesList();
-            SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
-            placesLV.setAdapter(sa);
+            SimpleAdapter simpleA = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colTag, colNum);
+            placesLV.setAdapter(simpleA);
             placesLV.setOnItemClickListener(this);
             setTitle("Places");
         }
     }
-
-
 }
