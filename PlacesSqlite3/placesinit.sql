@@ -1,15 +1,15 @@
-DROP TABLE place;
+DROP table place;
 
 CREATE TABLE place (
 	address_title VARCHAR(255),
     address_street VARCHAR(255),
-    elevation DOUBLE(100,1),
-    latitude DOUBLE(100,6),
-    longitude DOUBLE(100,6),
+    elevation DOUBLE(100,1) NOT NULL,
+    latitude DOUBLE(100,6) NOT NULL,
+    longitude DOUBLE(100,6) NOT NULL,
     place_name VARCHAR(255) PRIMARY KEY,
-    image TEXT,
-    place_decription TEXT,
-    place_category VARCHAR(255)		
+    image TEXT NOT NULL,
+    place_decription TEXT NOT NULL,
+    place_category VARCHAR(255)	NOT NULL	
 );
 
 INSERT INTO place VALUES

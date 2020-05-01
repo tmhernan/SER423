@@ -49,53 +49,12 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //activity_main = whole screen
         setContentView(R.layout.activity_main);
-
-        //Make a list view by finding it in main_activity by android id
-
-        //LITERAL LIST VIEW IN ACTIVITY MAINS
-        //THIS IS WHAT THE ADAPTER IS HOOKED UP TO
         placesLV = (ListView) findViewById(R.id.place_list_view);
-
-        //Make a new library
-        ///places = new PlaceLibrary(this);
-        //get the names of the places
-        //from the populated collection
-        ///placeNames = places.getNames();
-
-        /*prepare adapter
-
-          adapter: An Adapter object acts as a bridge between an AdapterView and the underlying
-           data for that view. The Adapter provides access to the data items. The Adapter is
-           also responsible for making a View for each item in the data set.
-
-          CALL THE METHOD
-
-         */
-        ///this.prepareAdapter();
-
-        /*SimpleAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to)
-          SimpleAdapter(this,            fillMaps,                            R.layout.place_list_item, colLabels,colIds);
-
-        An easy adapter to map static data to views defined in an XML file. You can specify the data backing the list
-        as an ArrayList of Maps. Each entry in the ArrayList corresponds to one row in the list. The Maps contain the
-        data for each row. You also specify an XML file that defines the views used to display the row, and a mapping
-        from keys in the Map to specific views.
-
-        https://developer.android.com/reference/android/widget/SimpleAdapter
-        */
-
         this.setUpPlacesList();
-
-        //PLACE LIST ITEM = JUST A NAME COLUMN
         SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
-
         placesLV.setAdapter(sa);
-
         placesLV.setOnItemClickListener(this);
-
         setTitle("Places");
     }
 
@@ -247,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
             //putextra extends data to the next intent ("Variable name", string-to-be-sent)
             ///displayPlace.putExtra("places", places);
             displayPlace.putExtra("selected", placeNames[position-1]);
+            displayPlace.putExtra("names", placeNames);
             this.startActivityForResult(displayPlace, 1);
         }
     }
@@ -257,7 +217,6 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
     //THIS IS TO UPDATE THE LIST OF PLACES AFTER THE USER DELETES IT
 
     public void onActivityResult(int requestCode, int resultCode, Intent data){
-        //places = data.getSerializableExtra("places")!=null ? (PlaceLibrary) data.getSerializableExtra("places") : places;
         this.setUpPlacesList();
         SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
         placesLV.setAdapter(sa);
@@ -317,10 +276,7 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         dialog.setPositiveButton("Add", this);
         dialog.show();
     }
-    //String insert = "insert into student values('"+this.nameET.getText().toString()+"','"+
-    //                 this.majorET.getText().toString()+"','"+this.emailET.getText().toString()+"',"+
-    //                 this.numET.getText().toString()+",null);";
-    //crsDB.execSQL(insert);
+
 
     //Logic for adding a new place
     @Override
@@ -328,43 +284,101 @@ public class MainActivity extends AppCompatActivity implements ListView.OnItemCl
         android.util.Log.d(this.getClass().getSimpleName(),"onClick positive button? "+
                 (whichButton==DialogInterface.BUTTON_POSITIVE));
         if(whichButton == DialogInterface.BUTTON_POSITIVE) {
-            try{
+            Boolean formatCheck = false;
+            String userAddressTitle = this.titleBox.getText().toString();
+            String userAddressStreet = this.addBox.getText().toString();
+            String userPlaceName = this.nameBox.getText().toString();
+            String userImage = this.imageBox.getText().toString();
+            String userDescription = this.descriptionBox.getText().toString();
+            String userCategory = this.catBox.getText().toString();
+            String userEle = this.eleBox.getText().toString();
+            String userLat = this.LatBox.getText().toString();
+            String userLon = this.LonBox.getText().toString();
+            double eleNum = 0.0, latNum = 0.0, lonNum = 0.0;
 
-            PlaceDB db = new PlaceDB((Context)this);
-            SQLiteDatabase crsDB = db.openDB();
-            //private EditText nameBox, descriptionBox, catBox, titleBox, addBox, eleBox, LatBox, LonBox;
-            ContentValues hm = new ContentValues();
-            hm.put("address_title", this.titleBox.getText().toString());
-            hm.put("address_street", this.addBox.getText().toString());
-            double eleNum = Double.parseDouble(this.eleBox.getText().toString());
-            hm.put("elevation", eleNum);
-            double latNum = Double.parseDouble(this.LatBox.getText().toString());
-            hm.put("latitude", latNum);
-            double lonNum = Double.parseDouble(this.LonBox.getText().toString());
-            hm.put("longitude", lonNum);
-            hm.put("place_name", this.nameBox.getText().toString());
-            hm.put("image", this.imageBox.getText().toString());
-            hm.put("place_decription", this.descriptionBox.getText().toString());
-            hm.put("place_category", this.catBox.getText().toString());
-
-            android.util.Log.w("onclick","message is " + nameBox.getText() + eleBox.getText()
-                    + this.titleBox.getText() + eleNum + latNum + lonNum
-                    + this.addBox.getText() + this.imageBox.getText() + this.descriptionBox.getText()
-                    + this.catBox.getText());
-
-            crsDB.insert("place",null, hm);
-            crsDB.close();
-            db.close();
-            }catch(Exception ex){
-                android.util.Log.w(this.getClass().getSimpleName(),"unable to add entry to database" + ex.getMessage() + "Stacktrace: " + ex.getStackTrace());
+            for (int i = 0; i < placeNames.length; i++) {
+                if (placeNames[i].equalsIgnoreCase(userPlaceName)){
+                    AlertDialog.Builder dbDialog = new AlertDialog.Builder(this);
+                    dbDialog.setTitle("Error. Your entry could not be added");
+                    dbDialog.setMessage("That place name already exists.");
+                    dbDialog.setNegativeButton("Ok", this);
+                    dbDialog.show();
+                    formatCheck = true;
+                    break;
+                }
             }
 
+            if (userEle == null || userEle.length() < 1 ||
+                    userLat == null || userLat.length() < 1 ||
+                    userLon == null || userLon.length() < 1 ||
+                    userPlaceName == null || userPlaceName.length() < 1 ||
+                    userImage == null || userImage.length() < 1 ||
+                    userDescription == null || userDescription.length() < 1 ||
+                    userCategory == null || userCategory.length() < 1) {
+                formatCheck = true;
+                AlertDialog.Builder dbDialog = new AlertDialog.Builder(this);
+                dbDialog.setTitle("Error. Your entry could not be added");
+                dbDialog.setMessage("You are missing fields. Only address title and street can be empty.");
+                dbDialog.setNegativeButton("Ok", this);
+                dbDialog.show();
+            }else{
+                try {
+                    eleNum = Double.parseDouble(userEle);
+                    latNum = Double.parseDouble(userLat);
+                    lonNum = Double.parseDouble(userLon);
+                }catch(Exception ex){
+                    AlertDialog.Builder dbDialog = new AlertDialog.Builder(this);
+                    formatCheck = true;
+                    dbDialog.setTitle("Error. Your entry could not be added");
+                    dbDialog.setMessage("Elevation, latitude and longitude require a number only.");
+                    dbDialog.setNegativeButton("Ok", this);
+                    dbDialog.show();
+                }
+            }
+
+
+            if (userAddressTitle == null || userAddressTitle.length() < 1){
+                userAddressTitle = null;
+            }
+
+            if (userAddressStreet == null || userAddressStreet.length() < 1){
+                userAddressStreet = null;
+            }
+
+            if (!formatCheck) {
+                try {
+                        PlaceDB db = new PlaceDB((Context) this);
+                        SQLiteDatabase crsDB = db.openDB();
+                        ContentValues hm = new ContentValues();
+                        hm.put("address_title", userAddressTitle);
+                        hm.put("address_street", userAddressStreet);
+                        hm.put("elevation", eleNum);
+                        hm.put("latitude", latNum);
+                        hm.put("longitude", lonNum);
+                        hm.put("place_name", userPlaceName);
+                        hm.put("image", userImage);
+                        hm.put("place_decription", userDescription);
+                        hm.put("place_category", userCategory);
+
+                        android.util.Log.w("onclick", "message is " + nameBox.getText() + eleBox.getText()
+                                + this.titleBox.getText() + eleNum + latNum + lonNum
+                                + this.addBox.getText() + this.imageBox.getText() + this.descriptionBox.getText()
+                                + this.catBox.getText());
+
+                        crsDB.insert("place", null, hm);
+                        crsDB.close();
+                        db.close();
+                    } catch (Exception ex) {
+                        android.util.Log.w(this.getClass().getSimpleName(), "unable to add entry to database" + ex.getMessage() + "Stacktrace: " + ex.getStackTrace());
+                    }
+            }
             setUpPlacesList();
             SimpleAdapter sa = new SimpleAdapter(this, fillMaps, R.layout.place_list_item, colLabels, colIds);
             placesLV.setAdapter(sa);
             placesLV.setOnItemClickListener(this);
-
             setTitle("Places");
         }
     }
+
+
 }

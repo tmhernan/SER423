@@ -38,14 +38,51 @@
     </LinearLayout>
 
     <ListView
+        android:id="@+id/placeDescription_list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:choiceMode="singleChoice"
-        android:listSelector="@android:color/darker_gray"
-        android:id="@+id/placeDescription_list_view"
-        android:layout_marginLeft="20dp" />
+        android:listSelector="@android:color/darker_gray" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:id="@+id/distance"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="20dp"
+        android:text="Great Circle Distance: "/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:id="@+id/distance_view"
+        android:paddingBottom="10dp"
+        android:layout_marginLeft="20dp">
+
+    <Spinner
+        android:id = "@+id/spinner"
+        android:layout_width = "wrap_content"
+        android:layout_height = "wrap_content"
+        android:prompt = "@string/app_name"
+        />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:onClick="calculateClicked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calculate"
+        android:id="@+id/distanceButt" />
+
+    </LinearLayout>
 
 </LinearLayout>
